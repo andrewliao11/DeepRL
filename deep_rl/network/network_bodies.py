@@ -5,7 +5,32 @@
 #######################################################################
 
 from .network_utils import *
+import ipdb
 
+# Relation Networks
+class NatureConvBody(nn.Module):
+    def __init__(self, in_channels=4):
+        super(NatureConvBody, self).__init__()
+        self.feature_dim = 512
+        self.conv1 = layer_init(nn.Conv2d(in_channels, 32, kernel_size=8, stride=4))
+        self.conv2 = layer_init(nn.Conv2d(32, 64, kernel_size=4, stride=2))
+        self.conv3 = layer_init(nn.Conv2d(64, 64, kernel_size=3, stride=1))
+        #self.fc4 = layer_init(nn.Linear(7 * 7 * 64, self.feature_dim))
+        self.fc4 = layer_init(nn.Linear(7 * 7 * 2, self.feature_dim))
+
+    def forward(self, x):
+        y = F.relu(self.conv1(x))
+        y = F.relu(self.conv2(y))
+        y = F.relu(self.conv3(y))
+        B, C, H, W = y.shape
+        objects1 = y.reshape([B, C, H*W])
+        objects2 = y.permute([0, 1, 3, 2]).reshape([B, C, H*W])
+        relation = torch.cat([objects1, objects2], -1)
+        output = self.fc4(relation).sum(1)
+        output = F.relu(output)
+        return output
+
+'''
 class NatureConvBody(nn.Module):
     def __init__(self, in_channels=4):
         super(NatureConvBody, self).__init__()
@@ -22,6 +47,7 @@ class NatureConvBody(nn.Module):
         y = y.view(y.size(0), -1)
         y = F.relu(self.fc4(y))
         return y
+'''
 
 class DDPGConvBody(nn.Module):
     def __init__(self, in_channels=4):

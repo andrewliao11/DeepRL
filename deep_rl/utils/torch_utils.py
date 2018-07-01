@@ -11,7 +11,8 @@ import os
 def select_device(gpu_id):
     # if torch.cuda.is_available() and gpu_id >= 0:
     if gpu_id >= 0:
-        Config.DEVICE = torch.device('cuda:%d' % (gpu_id))
+        os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
+        Config.DEVICE = torch.device('cuda:%d' % (0))
     else:
         Config.DEVICE = torch.device('cpu')
 
@@ -34,6 +35,7 @@ def random_seed():
 def set_one_thread():
     os.environ['OMP_NUM_THREADS'] = '1'
     os.environ['MKL_NUM_THREADS'] = '1'
+    # Sets the number of OpenMP threads used for parallelizing CPU operations
     torch.set_num_threads(1)
 
 def huber(x, k=1.0):

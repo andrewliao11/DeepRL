@@ -7,6 +7,9 @@
 from ..network import *
 from ..component import *
 from .BaseAgent import *
+from ..utils import *
+import ipdb
+
 
 class A2CAgent(BaseAgent):
     def __init__(self, config):
@@ -23,6 +26,8 @@ class A2CAgent(BaseAgent):
 
     def step(self):
         config = self.config
+        logger = config.logger
+
         rollout = []
         states = self.states
         for _ in range(config.rollout_length):
@@ -75,3 +80,10 @@ class A2CAgent(BaseAgent):
 
         steps = config.rollout_length * config.num_workers
         self.total_steps += steps
+
+        # algo-specific logging
+        logger.scalar_summary('policy_loss', self.policy_loss)
+        logger.scalar_summary('entropy', self.entropy_loss)
+        logger.scalar_summary('value_loss', self.value_loss)
+        actions = [to_np(r[2]) for r in rollout[:-1]]
+        logger.histo_summary('actions_histrogram', flatten_list(actions))

@@ -29,9 +29,19 @@ def run_steps(agent):
         if config.log_interval and not agent.total_steps % config.log_interval and len(agent.episode_rewards):
             rewards = agent.episode_rewards
             agent.episode_rewards = []
+            mean_rewards = np.mean(rewards)
+            median_rewards = np.median(rewards)
+            min_rewards = np.min(rewards)
+            max_rewards = np.max(rewards)
+            fps = config.log_interval / (time.time() - t0)
             config.logger.info('total steps %d, returns %.2f/%.2f/%.2f/%.2f (mean/median/min/max), %.2f steps/s' % (
-                agent.total_steps, np.mean(rewards), np.median(rewards), np.min(rewards), np.max(rewards),
-                config.log_interval / (time.time() - t0)))
+                agent.total_steps, mean_rewards, median_rewards, min_rewards, max_rewards, fps))
+            config.logger.scalar_summary('total_steps', agent.total_steps)
+            config.logger.scalar_summary('mean_rewards', mean_rewards)
+            config.logger.scalar_summary('median_rewards', median_rewards)
+            config.logger.scalar_summary('min_rewards', min_rewards)
+            config.logger.scalar_summary('max_rewards', max_rewards)
+            config.logger.scalar_summary('fps', fps)
             t0 = time.time()
         if config.eval_interval and not agent.total_steps % config.eval_interval:
             agent.eval_episodes()
@@ -52,6 +62,10 @@ def mkdir(path):
 def close_obj(obj):
     if hasattr(obj, 'close'):
         obj.close()
+
+def flatten_list(l):
+    flat_list = [item for sublist in l for item in sublist]
+    return flat_list
 
 class Batcher:
     def __init__(self, batch_size, data):

@@ -17,6 +17,8 @@ def get_logger(name='MAIN', file_name=None, log_dir='./log', skip=False, level=l
     logger.setLevel(level)
     if file_name is not None:
         file_name = '%s-%s' % (file_name, get_time_str())
+        log_dir = os.path.join(log_dir, file_name)
+        os.mkdir(log_dir)
         fh = logging.FileHandler('%s/%s.txt' % (log_dir, file_name))
         fh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s: %(message)s'))
         fh.setLevel(level)
@@ -43,6 +45,8 @@ class Logger(object):
     def to_numpy(self, v):
         if isinstance(v, torch.Tensor):
             v = v.cpu().detach().numpy()
+        if not isinstance(v, np.ndarray):
+            v = np.array(v)
         return v
 
     def get_step(self, tag):
@@ -65,7 +69,7 @@ class Logger(object):
     def histo_summary(self, tag, values, step=None):
         if self.skip:
             return
-        self.to_numpy(values)
+        values = self.to_numpy(values)
         if step is None:
             step = self.get_step(tag)
         self.writer.add_histogram(tag, values, step, bins=1000)
